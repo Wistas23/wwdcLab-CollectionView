@@ -8,7 +8,7 @@
 import UIKit
 
 struct ViewModel: Hashable {
-    let image: UIImage
+    var image: UIImage
     let name: String
     let type: SectionIdentifier
 }
@@ -160,4 +160,19 @@ class CollectionViewController: UICollectionViewController {
         collectionView.collectionViewLayout = layout
     }
     
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let section = dataSource.sectionIdentifier(for: indexPath.section) else { return }
+        switch section {
+            case .horizontal:
+                let selectedItem = dataSource.snapshot().itemIdentifiers(inSection: section)[indexPath.item]
+                var snapshot = dataSource.snapshot()
+                let itemsToChange = snapshot.itemIdentifiers(inSection: .vertical)
+                snapshot.deleteItems(itemsToChange)
+                let changedItems = itemsToChange.map({ ViewModel(image: selectedItem.image, name: $0.name, type: $0.type) })
+                snapshot.appendItems(changedItems)
+                dataSource.apply(snapshot)
+            default:
+                break
+        }
+    }
 }
